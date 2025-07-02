@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>職缺技能分析</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 font-sans leading-relaxed tracking-wide flex flex-col items-center px-4 py-8">
+
+  <div class="max-w-4xl w-full">
+    <h1 class="text-3xl font-bold mb-6 text-center">🔍 職缺技能分析</h1>
+
+    <form id="search-form" class="flex items-center gap-4 mb-8">
+      <input id="keyword" type="text" placeholder="輸入職缺關鍵字（如 SRE、行銷企劃）"
+        class="flex-grow px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+      <button type="submit"
+        class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">查詢</button>
+    </form>
+
+    <div id="loading" class="text-blue-500 hidden mb-4">🔄 資料擷取中，請稍候...</div>
+
+    <div id="result" class="space-y-10 hidden">
+      <div>
+        <h2 class="text-xl font-semibold mb-2">📈 技能出現頻率</h2>
+        <canvas id="skill-chart" height="200"></canvas>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold mb-2">📊 技能摘要總表</h2>
+        <div class="overflow-x-auto">
+          <table class="min-w-full border bg-white shadow rounded-lg">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="text-left px-4 py-2 border">職缺標題</th>
+                <th class="text-left px-4 py-2 border">公司名稱</th>
+                <th class="text-left px-4 py-2 border">Gemini 技能摘要</th>
+              </tr>
+            </thead>
+            <tbody id="job-table" class="text-sm"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('search-form');
+    const keywordInput = document.getElementById('keyword');
+    const loading = document.getElementById('loading');
+    const resultSection = document.getElementById('result');
+    const chartCanvas = document.getElementById('skill-chart');
+    const jobTable = document.getElementById('job-table');
+
+    let chart;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const keyword = keywordInput.value.trim();
+      if (!keyword) return;
+
+      loading.classList.remove('hidden');
+      resultSection.classList.add('hidden');
+      jobTable.innerHTML = '';
+      if (chart) chart.destroy();
+
+      const res = await fetch(`/skills/json?keyword=${encodeURIComponent(keyword)}`);
+      const data = await res.json();
+
+      loading.classList.add('hidden');
+      resultSection.classList.remove('hidden');
+
+      const labels = data.top_skills.map(s => s.skill);
+      const counts = data.top_skills.map(s => s.count);
+
+      chart = new Chart(chartCanvas, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: '出現次數',
+            data: counts,
+            backgroundColor: '#3b82f6'
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: true }
+          },
+          scales: {
+            x: { title: { display: true, text: '技能' } },
+            y: { title: { display: true, text: '出現次數' }, beginAtZero: true }
+          }
+        }
+      });
+
+      for (const job of data.jobs) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td class="border px-4 py-2">${job.title}</td>
+          <td class="border px-4 py-2">${job.company}</td>
+          <td class="border px-4 py-2 text-sm text-gray-600">${(job.skills || []).slice(0, 10).join(', ')}</td>
+        `;
+        jobTable.appendChild(row);
+      }
+    });
+  </script>
+</body>
+</html>
