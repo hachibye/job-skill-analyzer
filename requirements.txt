@@ -4,3 +4,5 @@ requests
 google-generativeai
 jieba
 tabulate
+httpx
+python-dotenv
