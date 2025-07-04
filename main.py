@@ -20,7 +20,7 @@ def home():
 @app.get("/skills/json", response_class=JSONResponse)
 def get_skills_json(
     keyword: str = Query(...),
-    limit: int = Query(10, ge=1, le=50)
+    limit: int = Query(100, ge=1, le=50)
 ):
     all_jobs = []
     keywords = keyword.strip().split()

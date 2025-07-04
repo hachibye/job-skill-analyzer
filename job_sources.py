@@ -4,7 +4,7 @@ import time
 from urllib.parse import quote
 
 
-def get_104_job_list(keyword: str, page: int = 1, max_jobs: int = 20) -> list:
+def get_104_job_list(keyword: str, page: int = 1, max_jobs: int = 100) -> list:
     print(f"\n🔎 [104 API] 查詢關鍵字：{keyword}（第 {page} 頁）")
 
     encoded_keyword = quote(keyword)
