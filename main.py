@@ -3,7 +3,6 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from typing import List
 from collections import Counter
-import json
 
 from job_sources import fetch_all_job_details
 from skill_analyzer import analyze_skill_from_description
@@ -19,13 +18,16 @@ def home():
 
 @app.get("/skills/json", response_class=JSONResponse)
 def get_skills_json(
-    keyword: str = Query(...),
+    keyword: str = Query(..., description="請輸入搜尋關鍵字（例如：SRE、DevOps）"),
     limit: int = Query(100, ge=1, le=50)
 ):
+    print(f"🔍 接收到 keyword: {keyword}")
+
     all_jobs = []
     keywords = keyword.strip().split()
 
     for kw in keywords:
+        print(f"🔎 查詢關鍵字：{kw}")
         jobs = fetch_all_job_details(kw, limit=limit)
         for job in jobs:
             text = f"{job.get('description','')}\n{job.get('requirement','')}"
@@ -41,7 +43,6 @@ def get_skills_json(
         "top_skills": [{"skill": s, "count": c} for s, c in top_skills],
         "jobs": all_jobs
     }
-
 
 def analyze_top_skills(jobs: List[dict], top_k: int = 10):
     counter = Counter()
