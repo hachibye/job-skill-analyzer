@@ -65,7 +65,7 @@
       if (chart) chart.destroy();
 
       try {
-        const res = await fetch(`/skills/json?keyword=${encodeURIComponent(keyword)}&t=${Date.now()}`);
+        const res = await fetch(`/skills/json?keyword=${encodeURIComponent(keyword)}&limit=50&t=${Date.now()}`);
         const data = await res.json();
 
         loading.classList.add('hidden');
